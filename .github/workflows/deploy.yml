@@ -1,19 +1,29 @@
-name: Deploy Vulnerable Application                                  # workflow name
+name: Build and Push Docker Image
 
 on:
   push:
     branches:
       - master
+      - main
+  workflow_dispatch:
+
 jobs:
-  deploy-heroku:
-    name: Deploy Heroku
+  build-and-push:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v2
-      - uses: akhileshns/heroku-deploy@v3.12.12 # This is the action
+      - name: Descargar código del repositorio
+        uses: actions/checkout@v6
+
+      - name: Iniciar sesión en Docker Hub
+        uses: docker/login-action@v3
         with:
-          heroku_api_key: ${{secrets.HEROKU_API_KEY}}
-          heroku_app_name: "app-vulnerable2022" #Must be unique in Heroku
-          heroku_email: "roxsrossve@gmail.com"
-          remote_branch: "master"
-          usedocker: true
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Construir y publicar imagen Docker
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: danielmedinaosorio/vulnerable-web-app-daniel:latest
